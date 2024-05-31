@@ -1,76 +1,61 @@
 #!/usr/bin/python3
-"""
-N queens problem
-- Approach: Backtracking
-    - Use backtracking to find all possible paths
-    - Check if the path is valid
-        - Check if the column is valid
-        - Check if the positive diagonal is valid
-        - Check if the negative diagonal is valid
-    - Add the queen's location to the path
-    - Continue if the path is valid until we reach the end of the board
-    - Backtrack if the path is not valid and try another path
-    - Add path to the result if we reach the end of the board
-- Analysis:
-    - Time: O(n!) - n is the number of queens
-        - We have n choices for the first queen, n - 1 choices for the
-          second queen,n - 2 choices for the third queen, etc.
-    - Space: O(n^2) - n is the number of queens
-"""
-
 import sys
 
+def is_safe(board, row, col, n):
+    # Check if there is a queen in the same column
+    for i in range(row):
+        if board[i][col] == 1:
+            return False
 
-def n_queens(n):
-    """ N queens solution """
-    queens, res = [], []
-    cols, positive_diag, negative_diag = set(), set(), set()
+    # Check upper diagonal on left side
+    for i, j in zip(range(row, -1, -1), range(col, -1, -1)):
+        if board[i][j] == 1:
+            return False
 
-    def backtrack(row, n, queens):
-        """ Backtracking function """
-        if row == n:
-            res.append(queens[:])
-            return
-        for col in range(n):
-            if (col in cols or row + col in positive_diag or
-                    row - col in negative_diag):
-                continue
-            cols.add(col)
-            positive_diag.add(row + col)
-            negative_diag.add(row - col)
-            queens.append([row, col])
-            backtrack(row + 1, n, queens)
+    # Check upper diagonal on right side
+    for i, j in zip(range(row, -1, -1), range(col, n)):
+        if board[i][j] == 1:
+            return False
 
-            cols.remove(col)
-            positive_diag.remove(row + col)
-            negative_diag.remove(row - col)
-            queens.pop()
-    backtrack(0, n, queens)
+    return True
+
+def solve_n_queens_util(board, row, n):
+    if row == n:
+        print([[r, c] for r, c in enumerate(board)])
+        return True
+
+    res = False
+    for col in range(n):
+        if is_safe(board, row, col, n):
+            board[row][col] = 1
+            res = solve_n_queens_util(board, row + 1, n) or res
+            board[row][col] = 0
+
     return res
 
-
-def check_args(n):
-    """ Check if n is a valid argument """
-    if not n.isdigit():
+def solve_n_queens(n):
+    if not isinstance(n, int):
         print("N must be a number")
-        exit(1)
-    if int(n) < 4:
+        sys.exit(1)
+    if n < 4:
         print("N must be at least 4")
-        exit(1)
+        sys.exit(1)
 
+    board = [[0] * n for _ in range(n)]
 
-def main():
-    """ Main function """
-    args = sys.argv
-    if len(args) != 2:
-        print("Usage: nqueens N")
-        exit(1)
-    n = args[1]
-    check_args(n)
-    solutions = n_queens(int(n))
-    for solution in solutions:
-        print(solution)
-
+    if not solve_n_queens_util(board, 0, n):
+        print("No solution exists")
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) != 2:
+        print("Usage: nqueens N")
+        sys.exit(1)
+
+    try:
+        n = int(sys.argv[1])
+    except ValueError:
+        print("N must be a number")
+        sys.exit(1)
+
+    solve_n_queens(n)
+
